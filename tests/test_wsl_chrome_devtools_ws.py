@@ -39,7 +39,7 @@ class ResolverHostTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_dir:
             path = Path(tmp_dir) / "resolv.conf"
             path.write_text("# generated\nnameserver 172.20.80.1\n", encoding="utf-8")
-            self.assertEqual(bridge._first_resolver_nameserver(path), "172.20.80.1")
+            self.assertEqual(bridge._first_non_localhost_nameserver(path), "172.20.80.1")
 
     def test_nameserver_skips_localhost_entries(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -48,7 +48,7 @@ class ResolverHostTests(unittest.TestCase):
                 "nameserver 127.0.0.1\nnameserver ::1\nnameserver 172.20.80.1\n",
                 encoding="utf-8",
             )
-            self.assertEqual(bridge._first_resolver_nameserver(path), "172.20.80.1")
+            self.assertEqual(bridge._first_non_localhost_nameserver(path), "172.20.80.1")
 
     def test_windows_host_prefers_environment_override(self) -> None:
         with mock.patch.dict("os.environ", {"CHROME_WINDOWS_HOST": "10.0.0.9"}, clear=False):

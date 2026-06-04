@@ -24,7 +24,7 @@ def is_wsl() -> bool:
     return "microsoft" in release or "wsl" in release
 
 
-def _first_resolver_nameserver(path: Path = Path("/etc/resolv.conf")) -> Optional[str]:
+def _first_non_localhost_nameserver(path: Path = Path("/etc/resolv.conf")) -> Optional[str]:
     try:
         for raw_line in path.read_text(encoding="utf-8").splitlines():
             line = raw_line.strip()
@@ -47,7 +47,7 @@ def windows_host() -> str:
     if env_host:
         return env_host
 
-    resolver_host = _first_resolver_nameserver()
+    resolver_host = _first_non_localhost_nameserver()
     if resolver_host:
         return resolver_host
 
@@ -94,7 +94,7 @@ async def keep_devtools_connection(
     """Maintain a resilient websocket session to Chrome DevTools."""
     try:
         import websockets
-    except ImportError as exc:  # pragma: no cover - checked at runtime
+    except ImportError as exc:  # pragma: no cover - requires websockets at runtime
         raise RuntimeError(
             "Missing dependency 'websockets'. Install it with: pip install websockets"
         ) from exc
@@ -112,7 +112,7 @@ async def keep_devtools_connection(
             ) as ws:
                 delay = cfg.reconnect_delay
                 while True:
-                    # Keep the socket healthy; payload handling is out of scope for this helper.
+                    # Keep the socket active and intentionally discard incoming payloads.
                     await ws.recv()
         except asyncio.CancelledError:
             raise

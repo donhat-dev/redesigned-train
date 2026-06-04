@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 import platform
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -93,7 +94,7 @@ async def keep_devtools_connection(
     """Maintain a resilient websocket session to Chrome DevTools."""
     try:
         import websockets
-    except ImportError as exc:  # pragma: no cover - validated by runtime usage
+    except ImportError as exc:  # pragma: no cover - checked at runtime
         raise RuntimeError(
             "Missing dependency 'websockets'. Install it with: pip install websockets"
         ) from exc
@@ -143,12 +144,18 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = _build_arg_parser().parse_args()
-    if args.resolve_only:
-        print(resolve_devtools_ws_url(args.url))
-        return 0
+    try:
+        if args.resolve_only:
+            print(resolve_devtools_ws_url(args.url))
+            return 0
 
-    asyncio.run(keep_devtools_connection(args.url))
-    return 0
+        asyncio.run(keep_devtools_connection(args.url))
+        return 0
+    except KeyboardInterrupt:
+        return 130
+    except (RuntimeError, ValueError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

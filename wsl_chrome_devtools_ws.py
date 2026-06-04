@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import logging
 import os
 import platform
 from dataclasses import dataclass
@@ -11,6 +12,7 @@ from urllib.parse import SplitResult, urlsplit, urlunsplit
 
 
 LOCALHOST_HOSTS = {"127.0.0.1", "localhost", "::1"}
+LOGGER = logging.getLogger(__name__)
 
 
 def is_wsl() -> bool:
@@ -77,6 +79,8 @@ def resolve_devtools_ws_url(url: str, *, force_windows_host: Optional[str] = Non
 
 @dataclass
 class ConnectionConfig:
+    """Connection tuning values in seconds for ping checks and reconnect backoff."""
+
     ping_interval: float = 20.0
     ping_timeout: float = 20.0
     reconnect_delay: float = 1.0
@@ -110,7 +114,13 @@ async def keep_devtools_connection(
                     await ws.recv()
         except asyncio.CancelledError:
             raise
-        except Exception:
+        except Exception as exc:
+            LOGGER.warning(
+                "DevTools websocket disconnected from %s; reconnecting in %.1fs",
+                resolved_url,
+                delay,
+                exc_info=exc,
+            )
             await asyncio.sleep(delay)
             delay = min(delay * 2, cfg.max_reconnect_delay)
 

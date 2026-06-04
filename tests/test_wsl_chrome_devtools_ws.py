@@ -32,14 +32,10 @@ class ResolveDevToolsUrlTests(unittest.TestCase):
 
 class ResolverHostTests(unittest.TestCase):
     def test_nameserver_from_resolv_conf(self) -> None:
-        with tempfile.NamedTemporaryFile("w+", delete=False) as tmp:
-            tmp.write("# generated\nnameserver 172.20.80.1\n")
-            path = Path(tmp.name)
-
-        try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "resolv.conf"
+            path.write_text("# generated\nnameserver 172.20.80.1\n", encoding="utf-8")
             self.assertEqual(bridge._first_resolver_nameserver(path), "172.20.80.1")
-        finally:
-            path.unlink(missing_ok=True)
 
     def test_windows_host_prefers_environment_override(self) -> None:
         with mock.patch.dict("os.environ", {"CHROME_WINDOWS_HOST": "10.0.0.9"}, clear=False):

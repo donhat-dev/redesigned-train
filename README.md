@@ -13,11 +13,11 @@ When running under WSL, localhost DevTools endpoints are rewritten to the detect
 
 ```bash
 pip install websockets
-python /tmp/workspace/donhat-dev/redesigned-train/wsl_chrome_devtools_ws.py ws://127.0.0.1:9222/devtools/browser/<id>
+python wsl_chrome_devtools_ws.py ws://127.0.0.1:9222/devtools/browser/<id>
 ```
 
 Resolve-only mode (no connection):
 
 ```bash
-python /tmp/workspace/donhat-dev/redesigned-train/wsl_chrome_devtools_ws.py ws://127.0.0.1:9222/devtools/browser/<id> --resolve-only
+python wsl_chrome_devtools_ws.py ws://127.0.0.1:9222/devtools/browser/<id> --resolve-only
 ```

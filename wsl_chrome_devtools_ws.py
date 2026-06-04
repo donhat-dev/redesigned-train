@@ -112,6 +112,7 @@ async def keep_devtools_connection(
             ) as ws:
                 delay = cfg.reconnect_delay
                 while True:
+                    # Keep the socket healthy; payload handling is out of scope for this helper.
                     await ws.recv()
         except asyncio.CancelledError:
             raise
@@ -143,6 +144,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     args = _build_arg_parser().parse_args()
     try:
         if args.resolve_only:
